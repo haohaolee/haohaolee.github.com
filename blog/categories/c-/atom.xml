@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: C++ | haohaolee's blog]]></title>
+  <link href="http://blog.haohaolee.com/blog/categories/c-/atom.xml" rel="self"/>
+  <link href="http://blog.haohaolee.com/"/>
+  <updated>2012-11-06T23:21:53+08:00</updated>
+  <id>http://blog.haohaolee.com/</id>
+  <author>
+    <name><![CDATA[haohaolee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[TIL what the emplace operation is in C++11]]></title>
+    <link href="http://blog.haohaolee.com/blog/2012/03/11/til-what-emplace-is-in-c-plus-plus-11/"/>
+    <updated>2012-03-11T14:03:00+08:00</updated>
+    <id>http://blog.haohaolee.com/blog/2012/03/11/til-what-emplace-is-in-c-plus-plus-11</id>
+    <content type="html"><![CDATA[<p>There are some new operations added to STL containers in C++11, which include <code>emplace</code>, <code>emplace_hint</code>, <code>emplace_front</code>, <code>emplace_after</code> and <code>emplace_back</code>.</p>
+
+<p>Nearly all containers in STL have this kind of operations except <code>std::array</code>, because it's immutable. All these operations share the common characteristic, which is 'constructing elements in containers directly without copy or move'.</p>
+
+<h2>Motivation</h2>
+
+<p>Since C++11 introduced <a href="http://en.wikipedia.org/wiki/C%2B%2B11#Rvalue_references_and_move_constructors">rvalue-reference</a> and its moveable semantic, although a big improvement on performance, sometimes there are still some redundant copy operations. For instance, say we have:</p>
+
+<p><code>c++
+vector&lt;tuple&lt;int, double, long double&gt;&gt; v;
+v.push_back(make_tuple(2, 3.14, 2.71828));
+</code>
+First, the tuple is a <a href="http://en.wikipedia.org/wiki/C%2B%2B11#Modification_to_the_definition_of_plain_old_data">POD</a>, therefore no movable constructor, actually it is obvious you cannot move anything from within a POD object. The above code may make some copies of the tuple which depends on the compiler optimaztion.</p>
+
+<p>Second, even when operating on moveable object, some copies still cannot be avoided. You can move a vector, but you still need copy the internal pointer that holds the resource.</p>
+
+<p>Emplace can do better for this, thanks to <a href="http://en.wikipedia.org/wiki/C%2B%2B11#Variadic_templates">variadic template</a> and the perfect forwarding. Instead of the above code, we can do:</p>
+
+<p><code>
+vector&lt;tuple&lt;int, double, long double&gt;&gt; v;
+v.emplace_back(2, 3.14, 2.71828);
+</code></p>
+
+<p>Here emplace_back will forward all the parameters to some internal function where the vector constructs its elements, just like what a <code>tuple&lt;int, double, long double&gt; t(2, 3.14, 2.71828);</code> does. No copies, no moves, constructs directly.</p>
+
+<p>Another example</p>
+
+<p>```
+vector&lt;vector<int>> vec_2d;</p>
+
+<p>// add a vector filled with five ones</p>
+
+<p>vec_2d.push_back(vector<int>(5, 1)); // using push_back, and expect to move</p>
+
+<p>vec_2d.emplace_back(5, 1); //or using emplace_back, constructing it directly
+```
+Note you only need provide the parameters for the element's constructor by order.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[C++2011 Memory Model 笔记]]></title>
+    <link href="http://blog.haohaolee.com/blog/2011/07/25/cpp2011-memory-model-notes/"/>
+    <updated>2011-07-25T00:10:18+08:00</updated>
+    <id>http://blog.haohaolee.com/blog/2011/07/25/cpp2011-memory-model-notes</id>
+    <content type="html"><![CDATA[<p>C++0x 的内存模型怕是 0x 里面最难啃的骨头之一了吧，至少相对于那些语法糖的增加来说。每次回来看都有些新的收获，这里做个记录。没有系统地总结，尽量给出处吧。标准参考的是 <a href="http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n3291.pdf">n3291</a>，和 FDIS 是一样的。</p>
+
+<h2>Memory ordering</h2>
+
+<p>C++ 的内存模型有3种 Memory Ordering</p>
+
+<ol>
+<li><p>sequential-consistent ordering</p></li>
+<li><p>acquire-release ordering</p></li>
+<li><p>relaxed ordering</p></li>
+</ol>
+
+
+<p>标准中对 atomic type 的 order 定义如下(29.3)：</p>
+
+<p>``` c++</p>
+
+<pre><code>    namespace std {
+     typedef enum memory_order {
+       memory_order_relaxed, // relaxed ordering
+       memory_order_consume, // acquire-release ordering (acquire part)
+       memory_order_acquire, // acquire-release ordering (acquire part)
+       memory_order_release, // acquire-release ordering (release part)
+       memory_order_acq_rel, // acquire-release ordering (both)
+       memory_order_seq_cst  // sequential-consistent ordering
+     } memory_order;
+    }
+</code></pre>
+
+<p>```</p>
+
+<p>默认是 <code>memory_order_seq_cst</code>，也就是 sequential-consistent，注意这里说的都是针对 atomic types。因为 C++ 标准不允许 non-atomic 的 data race，包含 data race 的程序视为 undefined behavior(1.10-21)。所以解决潜在的 data race 必须依赖 locks 以及 atomic operation。<strong>再强调一下，C++11 中凡是非 atomic type 的 data race 都是未定义行为，程序不可移植，等价于错误的程序</strong>。lock 这里不谈，因为使用上是符合直觉以及传统的，目的就是保护好 shared 对象，防止 data race。</p>
+
+<h2>Seqential Consistent Ordering</h2>
+
+<p>默认的 sequential-consistent model 是沿袭 Java 的内存模型(确切的说是 sequential-consistent with data-race-free)，所有的 atomic 操作都可以看作满足唯一 total order 的操作，也就是说，可以把这样的多线程程序理解成一个有先有后交叉运行的单线程程序(对atomic type而言)，这在推理时是有帮助的。每个 shared atomic 对象的改变在每个线程看来都是一样的，包括时间顺序以及值。这样一个默认的模型是相对来说符合直觉和容易处理的。举一个 <a href="http://en.wikipedia.org/wiki/Double-checked_locking">Double-checked locking</a> 的例子。</p>
+
+<p>``` c++</p>
+
+<pre><code>    class singleton
+    {
+        mutable std::mutex m;
+        mutable std::atomic&lt;expensive_data *&gt; data;
+
+    public:
+    // initialize data to 0 in constructor
+    //.....
+        const expensive_data* get_instance() const
+        {
+            expensive_data* result = data.load();
+            if(!result)
+            {
+                std::lock_guard&lt;std::mutex&gt; lk(m);
+                result = data.load();
+                if(!result)
+                {
+                    result = new expensive_data;
+                    data.store(result);
+                }
+            }
+            return result;
+        }
+    };
+</code></pre>
+
+<p>```</p>
+
+<p>这里的 load 和 store 默认参数都是<code>memory_order_seq_cst</code>, 等价于调用 <code>data.load(std::memory_order_seq_cst)</code> 和 <code>data.store(result, std::memory_order_seq_cst)</code>。</p>
+
+<ol>
+<li><p>shared data 要么在 mutex 内部，要么必须是 atomic type</p></li>
+<li><p>这个正确实现是符合直觉的，而且它和其它平台(比如 Java)的实现几乎是一样的。只要不考虑其它的 ordering，正确性相对容易保证。</p></li>
+</ol>
+
+
+<p>结论：默认的 sequential consistent 语义虽然相对保守，但是容易写出正确的程序，这也是推荐的处理方式。不到万不得已(性能不可接受)，不要使用其它语义，即上面提到的另外两种 ordering</p>
+
+<h2>Relaxed Memory Ordering</h2>
+
+<p>一旦进入剩下两种 ordering 的世界，程序的编写就得格外小心——因为它处处违反直觉。举标准一例：</p>
+
+<p>``` c++</p>
+
+<pre><code>    // Thread 1:
+    r1 = y.load(memory_order_relaxed);
+    x.store(r1, memory_order_relaxed);
+
+
+    // Thread 2:
+    r2 = x.load(memory_order_relaxed);
+    y.store(42, memory_order_relaxed);
+</code></pre>
+
+<p>```</p>
+
+<p>x,y 初始值为0，该程序结果不唯一，这是显而易见的。但是 r1 == r2 == 42 也是一个正确的结果，是不是很违反直觉？要产生这个结果，那么实际顺序必须是：</p>
+
+<p>```</p>
+
+<pre><code>    y.store(42, memory_order_relaxed);
+    r1 = y.load(memory_order_relaxed);
+    x.store(r1, memory_order_relaxed);
+    r2 = x.load(memory_order_relaxed);
+</code></pre>
+
+<p>```</p>
+
+<ol>
+<li><p>对于 thread 1 而言，thread 2 的执行不是顺序的(所谓的 program order)</p></li>
+<li><p>整体顺序完全不确定，这4条指令完全可以以任意顺序排列(实际执行也许根本不是 sequential 的)</p></li>
+</ol>
+
+
+<p>relaxed ordering 是最松散的一种语义：</p>
+
+<ul>
+<li><p>完全不参与多线程间的同步，编译器可以随便优化</p></li>
+<li><p>对于自身线程，data-dependency 产生的依赖需要满足，这是单线程程序正确性的要求</p></li>
+<li><p>此外它唯一的作用就是属于原子操作，所以不会产生 data race</p></li>
+</ul>
+
+
+<h2>Acquire-Release Ordering</h2>
+
+<p>该语义即同步语义，每一个 acquire 对应一个 release(跨线程的)，详细定义参见标准(29.3-2)。需要注意的是 C++ 的同步语义不是先验的，我们无法通过之前的执行判断之后两个操作是否同步了，而只能通过推理所有的情况来验证程序的正确性。具体来说，对于一个可能的 acquire-release pair，我必须考虑他们同步时的情况，也需要考虑他们没有同步时的情况。推理 C++ 多线程程序的正确性，特别是在这两种 ordering 情况下，需要塑模 happens-before 的关系(标准1.10-12)，通俗点说，就是推理出相关操作之间所有可能发生的顺序(或者根本就无序)。所以说带锁的多线程的程序很难写正确，更别说无锁的，可见一斑。
+举例：</p>
+
+<p>```</p>
+
+<pre><code>    // x0, x1 is atomic bool and initialized to false
+    // victim is atomic int and initialized to 0
+    // Thread 0
+    x0.store(true, memory_order_relaxed);
+    r0 = victim.exchange(0, memory_order_acq_rel);
+    r1 = x1.load(memory_order_acquire);
+
+    // Thread 1
+    x1.store(true, memory_order_relaxed);
+    r2 = victim.exchange(1, memory_order_acq_rel);
+    r3 = x0.load(memory_order_acquire);
+</code></pre>
+
+<p>```</p>
+
+<p>如何分析线程间可能的同步状态？因为 acquire 要和 release 对应，而两个线程中唯一可能同步的就是 victim 变量了，因为它的 exchange(即 read-modify-write 操作) 是 <code>memory_order_acq_req</code>，先读后写，读时 acquire，写时 release。这里先总结相关要点：</p>
+
+<ol>
+<li><p>当一个 atomic 对象的 acquire 同步 release 时(不同线程)，acquire 读到的值不一定是 release 上次写的值(不保证cache-coherence)，也可能是之前该 atomic 对象的值。准确的说，对于一个 atomic 对象，它存在唯一一个 modification order，即该对象从诞生以来被修改的顺序，可以想成一个 list {init, x1, x2, x3, ...}。而 acquire 读到的值可以是从上次读取到最近修改中间任意一个(包括上次读取的值)。假如 acquire 这次读到一个值 x1，那么下次 acquire 就可能读到 x1, x2, x3 等等，但是不可能读到 init 了。</p></li>
+<li><p>read-modify-write 操作含有特殊的语义，它每次都可以读到该 atomic 变量的最新的值。所以当该类操作同步时，读到的都是 modification order 最后的值。</p>
+
+<ul>
+<li><p>如果线程0中的 victim 读到 1，即 r0 返回 1，说明和线程1的 victim 写入同步，我们可以推理如下，按时间顺序:</p>
+
+<ol>
+<li><p>线程1中 "x1 置为 true" happens before "victim 置为 1"，这是 program order 保证的</p></li>
+<li><p>线程1中 "victim 置为 1" happens before 线程0 "victim exchange"，这是同步</p></li>
+<li><p>线程0中 "victim 读到 1，然后置为 0" happens before "x1 load"</p></li>
+</ol>
+</li>
+</ul>
+
+
+<p> 所以结论是 r1 == true r2 == 1，而 r3 未知，可以是 true，也可以是初始值 false，因为他们没有同步关系。</p>
+
+<ul>
+<li><p>如果线程0中的 victim 读到 0，即 r0 返回 1，那么 victim 读取的是初始值 0，那么反过来线程1的 victim 就会读到线程0 的 victim 值了：</p>
+
+<ol>
+<li><p>线程0中 "x0 置为 true" happens before "victim 置为 0"</p></li>
+<li><p>线程0中 "victim 置为 0" happens before 线程1中 "victim exchange"</p></li>
+<li><p>线程1中 "victim 读到 0，然后置为 1" happens before "x0 load"</p></li>
+</ol>
+</li>
+</ul>
+
+
+<p> 所以结论是 r3 == true r2 == 0，r1 是不确定的。</p></li>
+</ol>
+
+
+<p>这里只有两个线程，同时各执行一次，atomic 修改的次数也不多。所以推理起来尚属容易。</p>
+
+<h2>Peterson's lock</h2>
+
+<p>最后以一个 <a href="http://en.wikipedia.org/wiki/Peterson's_algorithm">Peterson's lock</a> 为例结束本文。该例是从 <a href="http://www.justsoftwaresolutions.co.uk/threading/petersons_lock_with_C++0x_atomics.html">这篇blog</a> 抄来的。</p>
+
+<p>```</p>
+
+<pre><code>    std::atomic&lt;int&gt; flag0(0),flag1(0),turn(0);
+
+    void lock(unsigned index)
+    {
+        if (0 == index)
+        {
+            flag0.store(1, std::memory_order_relaxed);
+            turn.exchange(1, std::memory_order_acq_rel);
+
+            while (flag1.load(std::memory_order_acquire)
+                &amp;&amp; 1 == turn.load(std::memory_order_relaxed))
+                std::this_thread::yield();
+        }
+        else
+        {
+            flag1.store(1, std::memory_order_relaxed);
+            turn.exchange(0, std::memory_order_acq_rel);
+
+            while (flag0.load(std::memory_order_acquire)
+                &amp;&amp; 0 == turn.load(std::memory_order_relaxed))
+                std::this_thread::yield();
+        }
+    }
+
+    void unlock(unsigned index)
+    {
+        if (0 == index)
+        {
+            flag0.store(0, std::memory_order_release);
+        }
+        else
+        {
+            flag1.store(0, std::memory_order_release);
+        }
+    }
+</code></pre>
+
+<p>```</p>
+
+<p>Peterson lock 是最简单的锁实现之一，它只提供两个线程之间的锁同步。该实现为了追求性能，采用了更弱的 ordering，所以这意味着正确性需要严格的证明。这里只总结一下要点：</p>
+
+<ol>
+<li><p>代码并非处处使用 acquire-release 同步，也有使用 relaxed ordering 的地方，但是正确性需要严格证明</p></li>
+<li><p>正确的关键在 <code>turn.exchange</code> 的使用和处理，<code>exchange</code> 保证了读取的值是最近修改的，而 <code>memory_order_acq_rel</code> 则保证了同步，从而使得跨线程的 happens-before 关系正确建立，并且 <code>while</code> 循环里 <code>turn</code> 和 <code>flag</code> 可以读到最新的值</p></li>
+</ol>
+
+
+<p>完整的证明可以参考<a href="http://www.justsoftwaresolutions.co.uk/threading/petersons_lock_with_C++0x_atomics.html">出处</a>。</p>
+
+<p>值得一提的是，如果采用 sequential-consistent ordering —— <code>flag</code> 和 <code>turn</code> 都用 <code>memory_order_seq_cst</code> 的话 —— 立刻就得到一个正确的实现，这也是目前大多数 peterson lock 的实现。基于 sequential-consistent 的 peterson lock 证明也更容易，可以参考 <a href="http://www.amazon.com/Art-Multiprocessor-Programming-Maurice-Herlihy/dp/0123705916"><em>The Art of Multiprocessor Programming</em></a> 第二章。</p>
+
+<p>本文参考:</p>
+
+<ol>
+<li><p><a href="http://bartoszmilewski.wordpress.com/2008/12/01/c-atomics-and-memory-ordering/">C++ atomics and memory ordering</a></p></li>
+<li><p><a href="http://bartoszmilewski.wordpress.com/2008/12/23/the-inscrutable-c-memory-model/">The Inscrutable C++ Memory Model</a></p></li>
+<li><p><a href="http://www.justsoftwaresolutions.co.uk/threading/petersons_lock_with_C++0x_atomics.html">Peterson's lock with C++0x atomics</a></p></li>
+<li><p><a href="http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n3291.pdf">n3291</a></p></li>
+<li><p><a href="http://www.parallellabs.com/2010/03/06/why-should-programmer-care-about-sequential-consistency-rather-than-cache-coherence/">为什么程序员需要关心顺序一致性（Sequential Consistency）而不是Cache一致性（Cache Coherence？）</a></p></li>
+</ol>
+
+
+<p>Posted via <a href="http://sinolog.it/?p=1894">UltraBlog.vim</a>.</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,674 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>使用 StrongSwan 搭建 ipsec VPN (1) For Nokia Mobile VPN Client - haohaolee's blog</title>
+  <meta name="author" content="haohaolee">
+
+  
+  <meta name="description" content="背景 话说如今这年头，翻墙已经不是要不要，而是怎么翻的问题。所以网上各种免费的收费的代理VPN满天飞，活生生在天朝创造了一个新兴的市场。可是对于使用 nokia s60 的用户来讲，各种不方便啊。ssh 代理不好用，vpn 呢官方客户端只支持 ipsec，还有个商业客户端 symVPN 支持 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://blog.haohaolee.com/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="http://feeds.feedburner.com/haohaolee" rel="alternate" title="haohaolee's blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-24747101-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">haohaolee's blog</a></h1>
+  
+    <h2>nerd以上，geek未满</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="http://feeds.feedburner.com/haohaolee" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:blog.haohaolee.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">使用 StrongSwan 搭建 Ipsec VPN (1) for Nokia Mobile VPN Client</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-13T00:46:09+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>背景</h2>
+
+<p>话说如今这年头，翻墙已经不是要不要，而是怎么翻的问题。所以网上各种免费的收费的代理VPN满天飞，活生生在天朝创造了一个新兴的市场。可是对于使用 nokia s60 的用户来讲，各种不方便啊。ssh 代理不好用，vpn 呢官方客户端只支持 ipsec，还有个商业客户端 symVPN 支持 pptp 但是太贵且<a href="http://www.google.com/search?hl=zh-CN&amp;newwindow=1&amp;safe=strict&amp;q=%E5%B0%81%E9%94%81+pptp&amp;aq=f&amp;aqi=&amp;aql=&amp;oq=">不实用</a>。经过大半个月的摸索，笔者最终使用开源软件 <a href="http://www.strongswan.org">strongSwan</a> 成功搭建了 Nokia S60 3rd 可以使用的VPN服务器。(理论上 v5 symbian<sup>3</sup> 应该也行，只要使用的是 <a href="http://europe.nokia.com/support/download-software/nokia-mobile-vpn">Nokia Mobile VPN</a>，Maemo 就不提了)。</p>
+
+<p>网上有关搭建Nokia VPN的中文文章据我所知只有 alpha2beta <a href="http://www.alpha2beta.com/vpn/vpn-on-nokia-s60-2-openswan-and-vpn-policy.html">这一篇</a>，该文采用的是 <a href="http://www.openswan.org">openswan</a>，和 strongswan 其实差不太多，都实现了 ipsec 协议。强烈推荐先去那里看看，如果：</p>
+
+<ol>
+<li>你想要快速搭建一个 Nokia 手机可用的 VPN，因为那篇文章采用的是 PSK 认证(pre-shared keys)，所以相对来说准备工作和步骤要少很多，实际上会容易一些</li>
+<li>你并不需要同时支持其它客户端，比如 iOS，Windows 等等</li>
+</ol>
+
+
+<p>如果你和笔者一样需要支持手头上的众多设备，那么请继续往下看吧。在本文基础上，可以很容易添加其它的设备。不过请做好心理准备，因为 ipsec 是公认的难搞，再加上 Nokia 设备的极度不友好，所以请一定要有耐心。笔者曾经碰到到相同的配置应用到 Nokia 上，第一次行第二次不行的情况，实在是太诡异了。</p>
+
+<p>不过搞定 ipsec 的一个好处是，ipsec 这样一个古老标准有着极其广泛的支持，几乎所有支持 VPN 的客户端原生支持着某种 ipsec 协议(大多数是兼容 Cisco 的 VPN 或者 L2TP over ipsec)，不像 openvpn 或者 pptp 配置起来很容易，但是往往设备不支持或者需要另外安装。</p>
+
+<h2>本文假设</h2>
+
+<ol>
+<li><p>基本的 linux 使用经验，会 make，会 build，会查 log，会配 iptables，当然您也可以现在就学起来~</p></li>
+<li><p>有一台 public ip 的linux服务器，如果是 VPS 最好是 xen 的( openvz 似乎不能安装 strongSwan )，并且服务器的<strong>public ip 是分配在某个 interface 上</strong>的，比如eth0，这意味服务器不能在NAT后面。(在NAT后面其实也是可以的，但是那会涉及到更多复杂的情况，本文不考虑，好在如今VPS不是都像EC2这样玩的)</p></li>
+<li><p>有一个指向该 ip 的域名</p></li>
+</ol>
+
+
+<h2>步骤</h2>
+
+<ul>
+<li><p>建立自己的 CA &amp; 颁发证书</p></li>
+<li><p>安装&amp;配置 StrongSwan</p></li>
+<li><p>配置手机客户端</p></li>
+<li><p>杂项</p></li>
+</ul>
+
+
+<h3>建立自己的 CA &amp; 颁发证书</h3>
+
+<p>因为针对不同设备需要不同的配置，而 psk 是共享同一个密钥，所以服务器无法区分客户端。因此我们需要采用 x.509 证书认证。关于 x.509 体系的具体情况，请查阅相关资料，笔者也不是这方面的专家，不敢误人子弟。大致来说，就是通过同时颁发证书给服务器和客户端使它们互相信任并且识别对方，达到认证的目的，另外好处是比密码更安全。</p>
+
+<p>颁发证书一般都采用 openssl。为了简便，尽量少的涉及到细节，这里采用 easy-rsa —— 一套脚本来完成这种任务。OpenVPN 项目就含有这一套脚本，这里以 linux 下的操作为例。Windows 的 OpenVPN 安装包也可以完成类似任务，不赘述。</p>
+
+<p>将 easy-rsa 目录 copy 到你的工作目录，比如 $HOME 。easy-rsa 一般在 OpenVPN 的例子目录中，比如 /usr/share/openvpn/easy-rsa ，然后进入easy-rsa。我们需要修改两个文件:</p>
+
+<ul>
+<li>openssl.cnf (如果 openssl 的版本是0.9.6，那就是修改openssl-0.9.6.cnf) 以下带有注释的行是需要增加或者修改的:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>......
+</span><span class='line'>subjectKeyIdentifier=hash
+</span><span class='line'>authorityKeyIdentifier=keyid,issuer:always
+</span><span class='line'>extendedKeyUsage=clientAuth      # add or modify this line
+</span><span class='line'>......
+</span><span class='line'>......
+</span><span class='line'>[ server ]
+</span><span class='line'>
+</span><span class='line'># JY ADDED -- Make a cert with nsCertType set to "server"
+</span><span class='line'>basicConstraints=CA:FALSE
+</span><span class='line'>nsCertType          = server
+</span><span class='line'>nsComment           = "OpenSSL Generated Server Certificate"
+</span><span class='line'>subjectKeyIdentifier=hash
+</span><span class='line'>authorityKeyIdentifier=keyid,issuer:always
+</span><span class='line'>extendedKeyUsage=clientAuth, serverAuth, 1.3.6.1.5.5.8.2.2   # add or modify this line
+</span><span class='line'>subjectAltName=DNS:your.vpn.domain                           # replace with your domain
+</span><span class='line'>......</span></code></pre></td></tr></table></div></figure>
+
+
+<p>subjectAltName 可以指定为 ip 或者域名，域名显然更灵活一些</p>
+
+<ul>
+<li>vars 修改最后几行，主要是证书的名称，机构，email等等，对应你自己的情况。例如:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>export KEY_COUNTRY="TC"
+</span><span class='line'>export KEY_PROVINCE="HX"
+</span><span class='line'>export KEY_CITY="modu"
+</span><span class='line'>export KEY_ORG=""
+</span><span class='line'>export KEY_EMAIL="whatever@xxx.com"</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>另外，KEY_SIZE 可以是1024也可以是2048，2048理论上更安全一些。</p>
+
+<p>然后，执行以下命令：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>. ./vars
+</span><span class='line'>./clean-all
+</span><span class='line'>./build-dh
+</span><span class='line'>./build-ca</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>过程中会问你一些问题，因为上面设置过了，大多数可以直接回车。
+末了，会在 keys 目录下生成 ca.crt 和 ca.key，前者是证书，后者是 key，key 是不能公开的</p>
+
+<p>然后，继续:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./build-key-server your.vpn.domain</span></code></pre></td></tr></table></div></figure>
+
+
+<p>替换 your.vpn.domain 为你自己的域名。生成一大堆东西，我们需要的包括 your.vpn.domain.crt 和 your.vpn.domain.key，这里用域名的原因是证书中的 common name 需要指定域名，作为参数传进去省事；当然你也可以手动指定。</p>
+
+<p>继续：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./build-key-pkcs12 client_name</span></code></pre></td></tr></table></div></figure>
+
+
+<p>过程和 server 的差不多，末了，会让你输入一个密码。这个密码是用来打包证书和 key 的。目录下会产生 client_name.crt，client_name.key 以及 client_name.p12</p>
+
+<p>最后还有一步，执行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>openssl x509 -inform PEM -outform DER -in keys/ca.crt -out keys/ca.cer</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这一步其实是 Symbian 需要的，它只能识别 der 格式，所以需要转换一下。
+这样，CA 和证书就弄好了，这里我们建立了一个 root CA，一对服务器 证书/密钥， 一对客户端 证书/密钥。注意一定要保存好 keys 目录的现场，因为以后还需要颁发更多的证书。下文中我将 your.vpn.domain.crt/key 改名为 strongswan.crt/key， 客户端则假设为 E71.crt/key/p12</p>
+
+<h3>安装&amp;配置 strongSwan</h3>
+
+<p>strongSwan 我使用的最新的 release <a href="http://www.strongswan.org/download.html">4.5.1</a>，你可以使用自己的 distro 自带的版本，也可以自行 build，这里略过。唯一需要注意的是，你使用的版本最好支持 NAT traversal，虽然对于本文针对的 Nokia VPN 的情况下不一定需要，但是很多情况下客户端在 NAT 后面并且使用 ikev1 的时候是需要的(特别是以后关于 iOS 的部分)。 NAT traversal 是由一个编译选项 enable-nat-transport 决定的。这里给我 build 时使用的 config 作为参考：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./configure   --prefix=/usr --sysconfdir=/etc --libexecdir=/usr/lib \
+</span><span class='line'>              --with-ipsecdir=/usr/lib/strongswan \
+</span><span class='line'>              --enable-sqlite --enable-smartcard --enable-cisco-quirks \
+</span><span class='line'>              --enable-openssl --enable-curl \
+</span><span class='line'>              --enable-sql --enable-attr-sql \
+</span><span class='line'>              --enable-farp --enable-dhcp \
+</span><span class='line'>              --enable-eap-sim --enable-eap-sim-file --enable-eap-simaka-pseudonym \
+</span><span class='line'>              --enable-eap-simaka-reauth --enable-eap-identity --enable-eap-md5 \
+</span><span class='line'>              --enable-eap-gtc --enable-eap-aka --enable-eap-aka-3gpp2 \
+</span><span class='line'>              --enable-eap-mschapv2 --enable-eap-radius \
+</span><span class='line'>              --enable-ha \
+</span><span class='line'>              --enable-nat-transport \
+</span><span class='line'>              --disable-mysql --disable-ldap \
+</span><span class='line'>              --disable-static --enable-shared</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装好以后，可以看看是否存在 ipsec 命令，以及是否存在 /etc/ipsec.d/ 目录</p>
+
+<ul>
+<li><p>安装证书
+这里我们需要的证书和密钥包括 ca.crt，strongswan.crt，strongswan.key。
+将 ca.crt copy 到 /etc/ipsec.d/cacerts/ ，strongswan.crt copy 到 /etc/ipsec.d/certs/ ，strongswan.key copy 到 /etc/ipsec.d/private/</p></li>
+<li><p>配置
+/etc/ipsec.conf</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># ipsec.conf - strongSwan IPsec configuration file
+</span><span class='line'>
+</span><span class='line'>config setup
+</span><span class='line'>    strictcrlpolicy=no
+</span><span class='line'>    charonstart=yes
+</span><span class='line'>    uniqueids=yes
+</span><span class='line'>
+</span><span class='line'>conn %default
+</span><span class='line'>    authby=rsasig
+</span><span class='line'>    leftrsasigkey=%cert
+</span><span class='line'>    rightrsasigkey=%cert
+</span><span class='line'>    left=%defaultroute
+</span><span class='line'>
+</span><span class='line'>conn ikev2
+</span><span class='line'>    keyexchange=ikev2
+</span><span class='line'>    leftsubnet=0.0.0.0/0
+</span><span class='line'>    leftcert=strongswan.crt
+</span><span class='line'>    rightca=%same
+</span><span class='line'>    dpddelay=90
+</span><span class='line'>    dpdtimeout=90
+</span><span class='line'>    dpdaction=clear
+</span><span class='line'>    right=%any
+</span><span class='line'>    rightsourceip=192.168.66.240/29
+</span><span class='line'>    auto=add</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里 192 打头的地址段是分配给客户端的虚拟 ip，你可以任意配置，我这里掩码用了29 bit，所以同时支持的客户端只有8个</p>
+
+<p>/etc/strongswan.conf</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># strongswan.conf - strongSwan configuration file
+</span><span class='line'>
+</span><span class='line'>charon {
+</span><span class='line'>    # number of worker threads in charon
+</span><span class='line'>    threads = 16
+</span><span class='line'>
+</span><span class='line'>    # send strongswan vendor ID?
+</span><span class='line'>    # send_vendor_id = yes
+</span><span class='line'>
+</span><span class='line'>    dns1 = 8.8.8.8
+</span><span class='line'>
+</span><span class='line'>    filelog {
+</span><span class='line'>            /var/log/charon.log {
+</span><span class='line'>                # loggers to files also accept the append option to open files in
+</span><span class='line'>                # append mode at startup (default is yes)
+</span><span class='line'>                # the default loglevel for all daemon subsystems (defaults to 1).
+</span><span class='line'>                default = 1
+</span><span class='line'>            }
+</span><span class='line'>            stderr {
+</span><span class='line'>                # more detailed loglevel for a specific subsystem, overriding the
+</span><span class='line'>                # default loglevel.
+</span><span class='line'>                ike = 2
+</span><span class='line'>                knl = 3
+</span><span class='line'>            }
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    plugins {
+</span><span class='line'>
+</span><span class='line'>            sql {
+</span><span class='line'>              # loglevel to log into sql database
+</span><span class='line'>              loglevel = -1
+</span><span class='line'>
+</span><span class='line'>              # URI to the database
+</span><span class='line'>              # database = sqlite:///path/to/file.db
+</span><span class='line'>              # database = mysql://user:password@localhost/database
+</span><span class='line'>          }
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>pluto {
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>libstrongswan {
+</span><span class='line'>
+</span><span class='line'>    #  set to no, the DH exponent size is optimized
+</span><span class='line'>    #  dh_exponent_ansi_x9_42 = no
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>dns1 是 push 到客户端的 dns，这里用的 google anycast dns，另外 filelog 是一些 log 选项</p>
+
+<p>/etc/ipsec.secrets</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>: RSA /etc/ipsec.d/private/strongswan.key</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里指定的是服务器使用的密钥，冒号之前可以用具体的 ip 来限制客户端，这里表示任意客户端。</p>
+
+<ul>
+<li>防火墙
+ipsec 需要打开 udp 500，udp 4500，ESP (协议号50)，AH (协议号51).
+你还需要将服务器配置为一个路由器(如果不是的话)，这意味你需要打开 ip 转发，并且要为你的虚拟 ip 段做 SNAT (除非你玩的是ipv6)。这部分内容请参考其他资料，一般不同的发行版都有专门文档阐述。</li>
+</ul>
+
+
+<p>你可以尝试启动 ipsec 服务，如果没有错误信息的话，服务器就配置好了。log 信息是在 /var/log 下面 auth.log 以及 charon.log</p>
+
+<h3>配置手机客户端</h3>
+
+<p>Nokia Mobile VPN Client，E系列我记得是自带的，其他手机可能要手动下载安装。另外，这里讨论的客户端版本>=3.1，因为3.1之后的客户端支持用一个后缀为 vpn 的 zip 包作为 vpn 策略文件，很方便。之前的版本需要创建 sis 文件，搞不好还要签名。所以这里只考虑3.1以后的。据我所知大都能升级到至少3.1。</p>
+
+<p>目前网上的文章都是基于手工制作 vpn 策略文件，很容易出错。所幸我找到一个官方的程序可以自动生成策略文件，减少了出错的可能。</p>
+
+<p><a href="http://nds1.nokia.com/files/support/global/phones/software/Nokia_VPN_Client_Policy_Tool.msi">下载地址</a> 需要 .Net Framwork 2.0</p>
+
+<p>现在切换到 Windows 平台下面。准备以下文件 ca.cer (不是ca.crt)，E71.p12，都是建立 CA 时生成的。过程都用截图算了，很简单。在 vista 和 win7 下需要管理员权限来执行。</p>
+
+<p><img src="https://dl.dropbox.com/u/1950964/img/wizard.png" title="wizard" ></p>
+
+<p>注意正确替换你的域名或ip</p>
+
+<p><img src="https://dl.dropbox.com/u/1950964/img/advance.png" title="advance" ></p>
+
+<p>将 cert store 改为 DEVICE，这样不用每次启动 VPN 都要输入密码</p>
+
+<p>然后执行 generate VPN policy，就OK了。至于如何安装及其设置接入点，网上已有很多资料，不再赘述。比如<a href="http://www.alpha2beta.com/vpn/%E5%9C%A8%E8%AF%BA%E5%9F%BA%E4%BA%9As60%E6%89%8B%E6%9C%BA%E4%B8%8A%E4%BD%BF%E7%94%A8vpn%E4%B9%8B%E4%B8%80%EF%BC%9A%E5%8E%9F%E7%94%9F%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%AF%B4%E6%98%8E%E5%8F%8A12vpn%E8%AF%84.html">这里</a>，<a href="http://429006.com/article/technology/2140.htm">这里</a>。</p>
+
+<p>设置好接入点之后就可以测试了。
+如果连接失败了，一方面需要看手机上的日志(虽然信息量有限)，另一方面需要看服务器上日志，特别是 charon.log，这是 ikev2 的日志。
+如果能连上，但是不能上网，那8成是服务器没有做好 ip 转发或者 SNAT 的问题，还有可能是 DNS 的问题</p>
+
+<h3>杂项</h3>
+
+<p>最后说一下相关细节，没兴趣可以不看。网上其它有关使用 openswan 或者 strongSwan 配置 ipsec 的文章大都使用的 <a href="http://en.wikipedia.org/wiki/Internet_Key_Exchange">ikev1</a> 协议，但是 Nokia 的客户端恰好支持更先进的 <a href="http://en.wikipedia.org/wiki/Internet_Key_Exchange#Improvements_with_IKEv2">ikev2</a> 协议(不能不赞一下~)，具有更好的连接稳定性，更好的 NAT 穿透性。之前我配置 Nokia VPN 和 openswan 使用 ikev1 也成功了，但是因为该死的 E71 的 bug (也许吧，看<a href="http://wiki.paepstin.info/nokia:vpn#new_nat_traversal_preference">这里</a>)要给 openswan 打补丁才行，整个折腾过程更悲催。经 <a href="https://twitter.com/#!/tjmao">@tjmao</a> 提醒才想起对 ikev2 支持更好的 strongSwan，才有了本文。</p>
+
+<p>另外，如果你通过本文，成功建立了 VPN 服务器。那么一个 bonus 就是，你同时支持了 windows 7 的 ikev2 客户端，只要给 win7 也颁发安装证书，然后可以了。而且从此远离<a href="http://support.microsoft.com/kb/926179">恶心</a>的 L2TP over ipsec。你可以看<a href="http://wiki.strongswan.org/projects/strongswan/wiki/Windows7">这里</a> 以及 <a href="http://blog.tjmao.net/2011/03/is-64-bit-so-hard-for-compatibility.html">这里</a></p>
+
+<p>最后的最后，本文一部分是边实验边写的，还有一部分是凭记忆写的，所以如果有什么问题，欢迎在下面提出来，看看有什么错误或者漏掉的。</p>
+
+<p>Good luck~</p>
+
+<p>Posted via <a href="http://sinolog.it/?p=1894">UltraBlog.vim</a>.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">haohaolee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-13T00:46:09+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2011</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://blog.haohaolee.com/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client/" data-via="haohaolee" data-counturl="http://blog.haohaolee.com/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/" title="Next Post: 使用 StrongSwan 搭建 ipsec VPN (2) For iOS">使用 StrongSwan 搭建 ipsec VPN (2) For iOS &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2012/03/25/use-microsoft-application-compatibility-toolkit-to-limit-unruly-apps/">用 Microsoft Application Compatibility Toolkit 管教不规矩的程序</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/03/24/create-a-vlan-trunk-in-tl-wr703n/">Create a VLAN trunk in TL-WR703N</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/03/11/til-what-emplace-is-in-c-plus-plus-11/">TIL what the emplace operation is in C++11</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/07/25/cpp2011-memory-model-notes/">C++2011 Memory Model 笔记</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/">使用 StrongSwan 搭建 ipsec VPN (2) For iOS</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("haohaolee", 8, true);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/haohaolee" class="twitter-follow-button" data-show-count="true">Follow @haohaolee</a>
+  
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - haohaolee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a>. Design by <a href="http://octopressthemes.com">Octopress Themes</a>.</span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'haohaolee';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://blog.haohaolee.com/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client/';
+        var disqus_url = 'http://blog.haohaolee.com/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

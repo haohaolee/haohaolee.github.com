@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>使用 StrongSwan 搭建 ipsec VPN (2) For iOS - haohaolee's blog</title>
+  <meta name="author" content="haohaolee">
+
+  
+  <meta name="description" content="再不写这个 part 2，搞不好就胎死腹中了。好嘛，书接上回，这次我们在 part 1 的基础上搭建一个 iOS 可以用的 ipsec VPN。 iOS 其实还可以用 L2TP VPN，这里且不谈我对 L2TP over ipsec 的无尽bs，如果要支持手上众多设备，还是采用纯 ipsec &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://blog.haohaolee.com/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="http://feeds.feedburner.com/haohaolee" rel="alternate" title="haohaolee's blog" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-24747101-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">haohaolee's blog</a></h1>
+  
+    <h2>nerd以上，geek未满</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="http://feeds.feedburner.com/haohaolee" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:blog.haohaolee.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">使用 StrongSwan 搭建 Ipsec VPN (2) for iOS</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-12T21:11:27+08:00" pubdate data-updated="true">May 12<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>再不写这个 part 2，搞不好就胎死腹中了。好嘛，书接上回，这次我们在 <a href="https://haohaolee.com/blog/2011/04/%E4%BD%BF%E7%94%A8-strongswan-%E6%90%AD%E5%BB%BA-ipsec-vpn-1-for-nokia-mobile-vpn-client/">part 1</a> 的基础上搭建一个 iOS 可以用的 ipsec VPN。</p>
+
+<p>iOS 其实还可以用 L2TP VPN，这里且不谈我对 L2TP over ipsec 的无尽bs，如果要支持手上众多设备，还是采用纯 ipsec 的解决方案比较好。顺便吐个槽，窃以为支不支持以 Cisco 为代表的众多商用 VPN 服务器是一个移动设备是否成熟到胜任商业应用的标准，对，说的就是你，<em>Android</em> 。人家 iOS 和塞班都支持，你都出道几年了？看不到<a href="http://code.google.com/p/android/issues/detail?id=3902">怨声载道</a>吗？</p>
+
+<h2>正文</h2>
+
+<ul>
+<li>服务器</li>
+</ul>
+
+
+<p>首先在 part 1 的基础上，修改三个配置文件就 OK 了：</p>
+
+<p>ipsec.conf:</p>
+
+<p>在配置文件把 setup 一节开头添加两行：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>config setup
+</span><span class='line'>    # add pluto for ikev1
+</span><span class='line'>    plutostart=yes
+</span><span class='line'>    nat_traversal=yes  
+</span><span class='line'>    strictcrlpolicy=no
+</span><span class='line'>    charonstart=yes
+</span><span class='line'>    uniqueids=yes</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后在末尾添加：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>conn ipad
+</span><span class='line'>    type=tunnel
+</span><span class='line'>    authby=xauthrsasig
+</span><span class='line'>    xauth=server
+</span><span class='line'>    keyexchange=ikev1
+</span><span class='line'>    ike=aes128-md5-modp1024
+</span><span class='line'>    esp=aes128-md5
+</span><span class='line'>    auto=add
+</span><span class='line'>    modeconfig=push
+</span><span class='line'>    compress=yes
+</span><span class='line'>    dpdaction=clear
+</span><span class='line'>    pfs=no
+</span><span class='line'>    leftcert=strongswan.crt
+</span><span class='line'>    leftsubnet=0.0.0.0/0
+</span><span class='line'>    right=%any
+</span><span class='line'>    rightsourceip=192.168.66.248/29
+</span><span class='line'>    rightca=%same</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意到 <code>authby=xauthrsasig</code> 这一行，因为 iOS 设备采用 rsa + xauth 的混合认证，需要同时配置证书和密码认证。服务器端证书 strongswan.crt 的颁发和配置参考 part 1 的说明。同样的，ip 地址段按自己喜好随意，因为 part 1 已经配置了一个 ip 段，这里就复用一下，防火墙的配置也可以省省了。</p>
+
+<p>ipsec.secret:</p>
+
+<p>同上，在末尾添加：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>username : XAUTH "password"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>用户名和密码自己随意，其他保持不变</p>
+
+<p>strongswan.conf:</p>
+
+<p>修改 <code>pluto</code> 一项为：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>pluto {
+</span><span class='line'>    dns1 = 8.8.8.8
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里一样加上 google 的 dns 以防万一客户端没有被推送到默认的 dns</p>
+
+<ul>
+<li>客户端</li>
+</ul>
+
+
+<p>首先按照 part 1 证书一节所述，给你的 iOS 设备颁发证书，假设得到的是 iOS.p12，然后把该文件和 ca.crt (iOS 对证书格式要求不高，不一定要是 der) 一起传到设备上。我习惯通过 email，然后在 safari 里面点击附件就可以安装了。</p>
+
+<p>最后的最后，还是截个图了事，一图胜千言啊：</p>
+
+<p><img src="https://dl.dropbox.com/u/1950964/img/ipad.png" title="ipad" ></p>
+
+<p>设置的时候选择你刚刚安装的证书就行了。</p>
+
+<p><img src="https://dl.dropbox.com/u/1950964/img/ipad2.png" title="ipad2" ></p>
+
+<p>update 2011/5/21: 这里有一份官方 wiki 专门讲 iOS 配置，一并参考: <a href="http://wiki.strongswan.org/projects/strongswan/wiki/IOS_(Apple">http://wiki.strongswan.org/projects/strongswan/wiki/IOS_(Apple)</a>)</p>
+
+<p>如果你觉得这篇文章有用，可以考虑给我点 <a href="http://www.bitcoin.org">Bitcoin</a> 小费: 14kB4s43d1CNy4VipGfpfennivJAgHkEnK</p>
+
+<p>Posted via <a href="http://sinolog.it/?p=1894">UltraBlog.vim</a>.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">haohaolee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-12T21:11:27+08:00" pubdate data-updated="true">May 12<span>th</span>, 2011</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://blog.haohaolee.com/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/" data-via="haohaolee" data-counturl="http://blog.haohaolee.com/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client/" title="Previous Post: 使用 StrongSwan 搭建 ipsec VPN (1) For Nokia Mobile VPN Client">&laquo; 使用 StrongSwan 搭建 ipsec VPN (1) For Nokia Mobile VPN Client</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/07/25/cpp2011-memory-model-notes/" title="Next Post: C++2011 Memory Model 笔记">C++2011 Memory Model 笔记 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2012/03/25/use-microsoft-application-compatibility-toolkit-to-limit-unruly-apps/">用 Microsoft Application Compatibility Toolkit 管教不规矩的程序</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/03/24/create-a-vlan-trunk-in-tl-wr703n/">Create a VLAN trunk in TL-WR703N</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/03/11/til-what-emplace-is-in-c-plus-plus-11/">TIL what the emplace operation is in C++11</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/07/25/cpp2011-memory-model-notes/">C++2011 Memory Model 笔记</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/">使用 StrongSwan 搭建 ipsec VPN (2) For iOS</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("haohaolee", 8, true);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/haohaolee" class="twitter-follow-button" data-show-count="true">Follow @haohaolee</a>
+  
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - haohaolee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a>. Design by <a href="http://octopressthemes.com">Octopress Themes</a>.</span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'haohaolee';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://blog.haohaolee.com/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/';
+        var disqus_url = 'http://blog.haohaolee.com/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

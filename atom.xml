@@ -1,111 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
 
-<!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <title>haohaolee's blog</title>
-  <meta name="author" content="haohaolee">
-
-  
-  <meta name="description" content="作为一个 UAC 和 sudo 爱好者，应用程序就应该乖乖的，该干嘛干嘛。老是有些游戏或者别的什么大言不惭的在安装说明叫你关掉 UAC，这一类要么是技术不好要么就是人品不好。今天就碰到一个。家里人要在网上打打麻将斗斗地主什么的，朋友们都在玩一个叫什么 JJ比赛 的游戏，类似于腾讯的游戏大厅的东东。 &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="http://blog.haohaolee.com/">
-  <link href="/favicon.png" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="http://feeds.feedburner.com/haohaolee" rel="alternate" title="haohaolee's blog" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-24747101-1']);
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">haohaolee's blog</a></h1>
-  
-    <h2>nerd以上，geek未满</h2>
-  
-</hgroup>
-
-</header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="http://feeds.feedburner.com/haohaolee" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
-  
-</ul>
-  
-<form action="http://google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:blog.haohaolee.com" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
-  
-<ul class="main-navigation">
-  <li><a href="/">Blog</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-</ul>
-
-</nav>
-  <div id="main">
-    <div id="content">
-      <div class="blog-index">
-  
-  
-  
-    <article>
-      
-  <header>
+  <title><![CDATA[haohaolee's blog]]></title>
+  <link href="http://blog.haohaolee.com/atom.xml" rel="self"/>
+  <link href="http://blog.haohaolee.com/"/>
+  <updated>2012-11-06T23:21:53+08:00</updated>
+  <id>http://blog.haohaolee.com/</id>
+  <author>
+    <name><![CDATA[haohaolee]]></name>
     
-      <h1 class="entry-title"><a href="/blog/2012/03/25/use-microsoft-application-compatibility-toolkit-to-limit-unruly-apps/">用 Microsoft Application Compatibility Toolkit 管教不规矩的程序</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
 
   
-
-
-<time datetime="2012-03-25T10:45:00+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2012</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>作为一个 UAC 和 sudo 爱好者，应用程序就应该乖乖的，该干嘛干嘛。老是有些游戏或者别的什么大言不惭的在安装说明叫你关掉 UAC，这一类要么是技术不好要么就是人品不好。今天就碰到一个。家里人要在网上打打麻将斗斗地主什么的，朋友们都在玩一个叫什么 <a href="http://www.jj.cn">JJ比赛</a> 的游戏，类似于腾讯的游戏大厅的东东。官网提供安装版和所谓绿色版，但是不管哪个版，只要一运行，UAC 提示框就会跳出来。我就纳闷了，一个游戏，要管理员权限干什么，而且我电脑上不是所有账户都有管理员权限。顺手看看到底是怎么回事：</p>
+  <entry>
+    <title type="html"><![CDATA[用 Microsoft Application Compatibility Toolkit 管教不规矩的程序]]></title>
+    <link href="http://blog.haohaolee.com/blog/2012/03/25/use-microsoft-application-compatibility-toolkit-to-limit-unruly-apps/"/>
+    <updated>2012-03-25T10:45:00+08:00</updated>
+    <id>http://blog.haohaolee.com/blog/2012/03/25/use-microsoft-application-compatibility-toolkit-to-limit-unruly-apps</id>
+    <content type="html"><![CDATA[<p>作为一个 UAC 和 sudo 爱好者，应用程序就应该乖乖的，该干嘛干嘛。老是有些游戏或者别的什么大言不惭的在安装说明叫你关掉 UAC，这一类要么是技术不好要么就是人品不好。今天就碰到一个。家里人要在网上打打麻将斗斗地主什么的，朋友们都在玩一个叫什么 <a href="http://www.jj.cn">JJ比赛</a> 的游戏，类似于腾讯的游戏大厅的东东。官网提供安装版和所谓绿色版，但是不管哪个版，只要一运行，UAC 提示框就会跳出来。我就纳闷了，一个游戏，要管理员权限干什么，而且我电脑上不是所有账户都有管理员权限。顺手看看到底是怎么回事：</p>
 
 <p><img src="https://dl.dropbox.com/u/1950964/img/TKLobby.exe_Manifest.png" title="manifest" ></p>
 
@@ -118,42 +31,15 @@
 <p>嗯，现在放心多了，普通账户也可以运行了。完。</p>
 
 <p>注：不是所有的兼容性问题都可以这样解决，比如有些程序用了高权限的 API，那就没办法降低权限了。</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/24/create-a-vlan-trunk-in-tl-wr703n/">Create a VLAN Trunk in TL-WR703N</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-24T20:57:00+08:00" pubdate data-updated="true">Mar 24<span>th</span>, 2012</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://wiki.openwrt.org/toh/tp-link/tl-wr703n">TL-WR703N</a> is a very tiny router, made by TP-LINK who markets it as &#8220;3G travel router&#8221;, although without a builtin 3G modem you cannot really say it is a 3G router, which is still an awesome device for its size. Very neat.</p>
+  <entry>
+    <title type="html"><![CDATA[Create a VLAN trunk in TL-WR703N]]></title>
+    <link href="http://blog.haohaolee.com/blog/2012/03/24/create-a-vlan-trunk-in-tl-wr703n/"/>
+    <updated>2012-03-24T20:57:00+08:00</updated>
+    <id>http://blog.haohaolee.com/blog/2012/03/24/create-a-vlan-trunk-in-tl-wr703n</id>
+    <content type="html"><![CDATA[<p><a href="http://wiki.openwrt.org/toh/tp-link/tl-wr703n">TL-WR703N</a> is a very tiny router, made by TP-LINK who markets it as &#8220;3G travel router&#8221;, although without a builtin 3G modem you cannot really say it is a 3G router, which is still an awesome device for its size. Very neat.</p>
 
 <p><a href="http://wiki.openwrt.org/toh/tp-link/tl-wr703n">TL-WR703N</a> 是一个非常小的路由器，生产商 TP-LINK 把它宣传为 “3G 旅行路由器”，然而不自带 3G 猫芯的路由器不能算作真正意义上的 3g 设备，不过它仍然是非常赞的东东，因为实在太小巧了。</p>
 
@@ -277,42 +163,15 @@ is:</p>
 
 <p><img src="https://dl.dropbox.com/u/1950964/img/Realtek_Ethernet_Diagnostic_Utility.png" title="VLAN" >
 <img src="https://dl.dropbox.com/u/1950964/img/VLAN%202%20Properties.png" title="NIC" ></p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/11/til-what-emplace-is-in-c-plus-plus-11/">TIL What the Emplace Operation Is in C++11</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-11T14:03:00+08:00" pubdate data-updated="true">Mar 11<span>th</span>, 2012</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>There are some new operations added to STL containers in C++11, which include <code>emplace</code>, <code>emplace_hint</code>, <code>emplace_front</code>, <code>emplace_after</code> and <code>emplace_back</code>.</p>
+  <entry>
+    <title type="html"><![CDATA[TIL what the emplace operation is in C++11]]></title>
+    <link href="http://blog.haohaolee.com/blog/2012/03/11/til-what-emplace-is-in-c-plus-plus-11/"/>
+    <updated>2012-03-11T14:03:00+08:00</updated>
+    <id>http://blog.haohaolee.com/blog/2012/03/11/til-what-emplace-is-in-c-plus-plus-11</id>
+    <content type="html"><![CDATA[<p>There are some new operations added to STL containers in C++11, which include <code>emplace</code>, <code>emplace_hint</code>, <code>emplace_front</code>, <code>emplace_after</code> and <code>emplace_back</code>.</p>
 
 <p>Nearly all containers in STL have this kind of operations except <code>std::array</code>, because it&#8217;s immutable. All these operations share the common characteristic, which is &#8216;constructing elements in containers directly without copy or move&#8217;.</p>
 
@@ -362,42 +221,15 @@ is:</p>
 
 
 <p>Note you only need provide the parameters for the element&#8217;s constructor by order.</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/07/25/cpp2011-memory-model-notes/">C++2011 Memory Model 笔记</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-07-25T00:10:18+08:00" pubdate data-updated="true">Jul 25<span>th</span>, 2011</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>C++0x 的内存模型怕是 0x 里面最难啃的骨头之一了吧，至少相对于那些语法糖的增加来说。每次回来看都有些新的收获，这里做个记录。没有系统地总结，尽量给出处吧。标准参考的是 <a href="http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n3291.pdf">n3291</a>，和 FDIS 是一样的。</p>
+  <entry>
+    <title type="html"><![CDATA[C++2011 Memory Model 笔记]]></title>
+    <link href="http://blog.haohaolee.com/blog/2011/07/25/cpp2011-memory-model-notes/"/>
+    <updated>2011-07-25T00:10:18+08:00</updated>
+    <id>http://blog.haohaolee.com/blog/2011/07/25/cpp2011-memory-model-notes</id>
+    <content type="html"><![CDATA[<p>C++0x 的内存模型怕是 0x 里面最难啃的骨头之一了吧，至少相对于那些语法糖的增加来说。每次回来看都有些新的收获，这里做个记录。没有系统地总结，尽量给出处吧。标准参考的是 <a href="http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n3291.pdf">n3291</a>，和 FDIS 是一样的。</p>
 
 <h2>Memory ordering</h2>
 
@@ -722,42 +554,15 @@ is:</p>
 
 
 <p>Posted via <a href="http://sinolog.it/?p=1894">UltraBlog.vim</a>.</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/">使用 StrongSwan 搭建 Ipsec VPN (2) for iOS</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-05-12T21:11:27+08:00" pubdate data-updated="true">May 12<span>th</span>, 2011</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>再不写这个 part 2，搞不好就胎死腹中了。好嘛，书接上回，这次我们在 <a href="https://haohaolee.com/blog/2011/04/%E4%BD%BF%E7%94%A8-strongswan-%E6%90%AD%E5%BB%BA-ipsec-vpn-1-for-nokia-mobile-vpn-client/">part 1</a> 的基础上搭建一个 iOS 可以用的 ipsec VPN。</p>
+  <entry>
+    <title type="html"><![CDATA[使用 StrongSwan 搭建 ipsec VPN (2) For iOS]]></title>
+    <link href="http://blog.haohaolee.com/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/"/>
+    <updated>2011-05-12T21:11:27+08:00</updated>
+    <id>http://blog.haohaolee.com/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios</id>
+    <content type="html"><![CDATA[<p>再不写这个 part 2，搞不好就胎死腹中了。好嘛，书接上回，这次我们在 <a href="https://haohaolee.com/blog/2011/04/%E4%BD%BF%E7%94%A8-strongswan-%E6%90%AD%E5%BB%BA-ipsec-vpn-1-for-nokia-mobile-vpn-client/">part 1</a> 的基础上搭建一个 iOS 可以用的 ipsec VPN。</p>
 
 <p>iOS 其实还可以用 L2TP VPN，这里且不谈我对 L2TP over ipsec 的无尽bs，如果要支持手上众多设备，还是采用纯 ipsec 的解决方案比较好。顺便吐个槽，窃以为支不支持以 Cisco 为代表的众多商用 VPN 服务器是一个移动设备是否成熟到胜任商业应用的标准，对，说的就是你，<em>Android</em> 。人家 iOS 和塞班都支持，你都出道几年了？看不到<a href="http://code.google.com/p/android/issues/detail?id=3902">怨声载道</a>吗？</p>
 
@@ -876,42 +681,15 @@ is:</p>
 <p>如果你觉得这篇文章有用，可以考虑给我点 <a href="http://www.bitcoin.org">Bitcoin</a> 小费: 14kB4s43d1CNy4VipGfpfennivJAgHkEnK</p>
 
 <p>Posted via <a href="http://sinolog.it/?p=1894">UltraBlog.vim</a>.</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client/">使用 StrongSwan 搭建 Ipsec VPN (1) for Nokia Mobile VPN Client</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-04-13T00:46:09+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2011</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>背景</h2>
+  <entry>
+    <title type="html"><![CDATA[使用 StrongSwan 搭建 ipsec VPN (1) For Nokia Mobile VPN Client]]></title>
+    <link href="http://blog.haohaolee.com/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client/"/>
+    <updated>2011-04-13T00:46:09+08:00</updated>
+    <id>http://blog.haohaolee.com/blog/2011/04/13/use-strongswan-to-build-ipsec-vpn-for-nokia-mobile-vpn-client</id>
+    <content type="html"><![CDATA[<h2>背景</h2>
 
 <p>话说如今这年头，翻墙已经不是要不要，而是怎么翻的问题。所以网上各种免费的收费的代理VPN满天飞，活生生在天朝创造了一个新兴的市场。可是对于使用 nokia s60 的用户来讲，各种不方便啊。ssh 代理不好用，vpn 呢官方客户端只支持 ipsec，还有个商业客户端 symVPN 支持 pptp 但是太贵且<a href="http://www.google.com/search?hl=zh-CN&amp;newwindow=1&amp;safe=strict&amp;q=%E5%B0%81%E9%94%81+pptp&amp;aq=f&amp;aqi=&amp;aql=&amp;oq=">不实用</a>。经过大半个月的摸索，笔者最终使用开源软件 <a href="http://www.strongswan.org">strongSwan</a> 成功搭建了 Nokia S60 3rd 可以使用的VPN服务器。(理论上 v5 symbian<sup>3</sup> 应该也行，只要使用的是 <a href="http://europe.nokia.com/support/download-software/nokia-mobile-vpn">Nokia Mobile VPN</a>，Maemo 就不提了)。</p>
 
@@ -1315,122 +1093,7 @@ ipsec 需要打开 udp 500，udp 4500，ESP (协议号50)，AH (协议号51).
 <p>Good luck~</p>
 
 <p>Posted via <a href="http://sinolog.it/?p=1894">UltraBlog.vim</a>.</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</div>
-<aside class="sidebar">
-  
-    <section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2012/03/25/use-microsoft-application-compatibility-toolkit-to-limit-unruly-apps/">用 Microsoft Application Compatibility Toolkit 管教不规矩的程序</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/03/24/create-a-vlan-trunk-in-tl-wr703n/">Create a VLAN trunk in TL-WR703N</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/03/11/til-what-emplace-is-in-c-plus-plus-11/">TIL what the emplace operation is in C++11</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/07/25/cpp2011-memory-model-notes/">C++2011 Memory Model 笔记</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2011/05/12/use-strongswan-to-build-ipsec-vpn-for-ios/">使用 StrongSwan 搭建 ipsec VPN (2) For iOS</a>
-      </li>
-    
-  </ul>
-</section>
-
-
-<section>
-  <h1>Latest Tweets</h1>
-  <ul id="tweets">
-    <li class="loading">Status updating&#8230;</li>
-  </ul>
-  <script type="text/javascript">
-    $.domReady(function(){
-      getTwitterFeed("haohaolee", 8, true);
-    });
-  </script>
-  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
-  
-    <a href="http://twitter.com/haohaolee" class="twitter-follow-button" data-show-count="true">Follow @haohaolee</a>
-  
-</section>
-
-
-
-
-
-  
-</aside>
-
-    </div>
-  </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2012 - haohaolee -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a>. Design by <a href="http://octopressthemes.com">Octopress Themes</a>.</span>
-</p>
-
-</footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'haohaolee';
-      
-        
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-  <script type="text/javascript">
-    (function() {
-      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
-      script.src = 'https://apis.google.com/js/plusone.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
-    })();
-  </script>
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
-</body>
-</html>
+</feed>
